@@ -1,0 +1,104 @@
+# XcodeGen spec. Run `xcodegen generate` on a Mac to create AdBlock.xcodeproj.
+# Replace YOUR_TEAM_ID and com.yourcompany.* with your own values everywhere
+# (including Shared/BlocklistStore.swift and App/AppModel.swift).
+name: AdBlock
+options:
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: YOUR_TEAM_ID
+
+targets:
+  AdBlock:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.adblock
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: AdBlock
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: App/AdBlock.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.yourcompany.adblock
+        com.apple.developer.networking.networkextension:
+          - dns-proxy
+    dependencies:
+      - target: SafariContentBlocker
+        embed: true
+      - target: DNSProxy
+        embed: true
+
+  SafariContentBlocker:
+    type: app-extension
+    platform: iOS
+    sources:
+      - SafariContentBlocker
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.adblock.SafariContentBlocker
+    info:
+      path: SafariContentBlocker/Info.plist
+      properties:
+        CFBundleDisplayName: AdBlock Content Blocker
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.Safari.content-blocker
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ContentBlockerRequestHandler
+    entitlements:
+      path: SafariContentBlocker/SafariContentBlocker.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.yourcompany.adblock
+
+  DNSProxy:
+    type: app-extension
+    platform: iOS
+    sources:
+      - DNSProxy
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.adblock.DNSProxy
+    info:
+      path: DNSProxy/Info.plist
+      properties:
+        CFBundleDisplayName: AdBlock DNS
+        NetworkExtension:
+          NEProviderClasses:
+            com.apple.networkextension.dns-proxy: $(PRODUCT_MODULE_NAME).DNSProxyProvider
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.networkextension.dns-proxy
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DNSProxyProvider
+    entitlements:
+      path: DNSProxy/DNSProxy.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.yourcompany.adblock
+        com.apple.developer.networking.networkextension:
+          - dns-proxy
+
+  AdBlockTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.adblock.tests
